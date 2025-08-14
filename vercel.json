@@ -3,27 +3,42 @@
   "name": "eter-tienda-online",
   "builds": [
     {
-      "src": "tienda/**/*",
+      "src": "tiendas/**/*",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/",
-      "dest": "/tienda/index.html"
+      "dest": "/tiendas/index.html"
     },
     {
-      "src": "/estilos.css",
-      "dest": "/tienda/estilos.css"
+      "src": "/tienda/(.*)",
+      "dest": "/tiendas/$1"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/tiendas/$1/admin.html"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/tienda/$1"
+      "dest": "/tiendas/$1"
     }
   ],
-  "outputDirectory": "tienda",
+  "outputDirectory": "tiendas",
   "public": true,
-  "functions": {},
+  "functions": {
+    "api/auth.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/tienda.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

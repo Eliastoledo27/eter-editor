@@ -7141,3 +7141,675 @@ async function verificarVercelCLI() {
         return false;
     }
 }
+
+// Función para publicar tienda y mostrar información del directorio
+function publicarTiendaConEnlace(nombreCatalogo, productos, configuracion = {}) {
+    try {
+        console.log('🚀 Publicando tienda online...');
+        
+        // Mostrar modal de configuración de credenciales
+        mostrarModalCredenciales(nombreCatalogo, productos, configuracion);
+        
+    } catch (error) {
+        console.error('❌ Error al publicar tienda:', error);
+        mostrarNotificacion('❌ Error al publicar la tienda', 'error');
+    }
+}
+
+// Función para mostrar modal de credenciales
+function mostrarModalCredenciales(nombreCatalogo, productos, configuracion) {
+    const modalHTML = `
+        <div class="credenciales-modal" id="credencialesModal">
+            <div class="credenciales-content">
+                <div class="credenciales-header">
+                    <h2><i class="fas fa-user-shield"></i> Configurar Credenciales</h2>
+                    <button class="credenciales-close" onclick="cerrarModalCredenciales()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="credenciales-body">
+                    <div class="credenciales-info">
+                        <div class="info-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3>Configura tu tienda online</h3>
+                        <p>Crea un usuario y contraseña para administrar tu tienda</p>
+                    </div>
+                    
+                    <form class="credenciales-form" id="credencialesForm">
+                        <div class="form-group">
+                            <label for="tiendaId">ID de la Tienda:</label>
+                            <input type="text" id="tiendaId" name="tiendaId" value="${nombreCatalogo.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}" required>
+                            <small>Identificador único para tu tienda (solo letras, números y guiones)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="adminUsername">Usuario Administrador:</label>
+                            <input type="text" id="adminUsername" name="adminUsername" placeholder="admin" required>
+                            <small>Usuario para acceder al panel de administración</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="adminPassword">Contraseña:</label>
+                            <input type="password" id="adminPassword" name="adminPassword" placeholder="••••••••" required>
+                            <small>Mínimo 6 caracteres</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirmar Contraseña:</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
+                            <small>Repite la contraseña</small>
+                        </div>
+                        
+                        <button type="submit" class="btn-crear-tienda">
+                            <i class="fas fa-rocket"></i>
+                            Crear Tienda Online
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modalStyles = `
+        <style>
+            .credenciales-modal {
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                backdrop-filter: blur(5px);
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .credenciales-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 600px;
+                width: 90%;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                animation: slideIn 0.3s ease;
+                margin: auto;
+            }
+            
+            .credenciales-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .credenciales-header h2 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .credenciales-close {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .credenciales-close:hover {
+                background: rgba(255,255,255,0.3);
+                transform: scale(1.1);
+            }
+            
+            .credenciales-body {
+                padding: 2rem;
+            }
+            
+            .credenciales-info {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .info-icon {
+                font-size: 3rem;
+                color: #667eea;
+                margin-bottom: 1rem;
+            }
+            
+            .credenciales-info h3 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #333;
+                margin-bottom: 0.5rem;
+            }
+            
+            .credenciales-info p {
+                color: #666;
+                font-size: 1rem;
+            }
+            
+            .credenciales-form {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .form-group label {
+                font-weight: 600;
+                color: #333;
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                padding: 0.75rem 1rem;
+                border: 2px solid #e1e5e9;
+                border-radius: 8px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+            
+            .form-group input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+            
+            .form-group small {
+                color: #666;
+                font-size: 0.8rem;
+            }
+            
+            .btn-crear-tienda {
+                padding: 1rem 2rem;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-top: 1rem;
+            }
+            
+            .btn-crear-tienda:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            }
+            
+            .btn-crear-tienda:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            
+            @media (max-width: 768px) {
+                .credenciales-content {
+                    width: 95%;
+                    margin: 1rem;
+                }
+                
+                .credenciales-body {
+                    padding: 1.5rem;
+                }
+            }
+        </style>
+    `;
+    
+    // Agregar modal y estilos al DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.head.insertAdjacentHTML('beforeend', modalStyles);
+    
+    // Configurar formulario
+    document.getElementById('credencialesForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const tiendaId = document.getElementById('tiendaId').value;
+        const username = document.getElementById('adminUsername').value;
+        const password = document.getElementById('adminPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Validaciones
+        if (password !== confirmPassword) {
+            mostrarNotificacion('❌ Las contraseñas no coinciden', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            mostrarNotificacion('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+        
+        if (username.length < 3) {
+            mostrarNotificacion('❌ El usuario debe tener al menos 3 caracteres', 'error');
+            return;
+        }
+        
+        // Crear tienda
+        await crearTiendaConCredenciales(tiendaId, username, password, nombreCatalogo, productos, configuracion);
+    });
+}
+
+// Función para crear tienda con credenciales
+async function crearTiendaConCredenciales(tiendaId, username, password, nombreCatalogo, productos, configuracion) {
+    try {
+        const btnCrear = document.querySelector('.btn-crear-tienda');
+        btnCrear.disabled = true;
+        btnCrear.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tienda...';
+        
+        // Generar la tienda
+        const resultado = generarTiendaOnlineInteractiva(nombreCatalogo, productos, configuracion);
+        
+        // Registrar usuario
+        const registerResponse = await fetch('/api/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'register',
+                username: username,
+                password: password,
+                tiendaId: tiendaId
+            })
+        });
+        
+        if (!registerResponse.ok) {
+            const errorData = await registerResponse.json();
+            throw new Error(errorData.error || 'Error al registrar usuario');
+        }
+        
+        // Crear tienda
+        const tiendaResponse = await fetch('/api/tienda', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'create',
+                tiendaId: tiendaId,
+                data: {
+                    html: resultado.htmlContent,
+                    css: resultado.cssContent,
+                    config: {
+                        name: nombreCatalogo,
+                        created: new Date().toISOString(),
+                        products: productos.length,
+                        configuration: configuracion
+                    }
+                }
+            })
+        });
+        
+        if (!tiendaResponse.ok) {
+            const errorData = await tiendaResponse.json();
+            throw new Error(errorData.error || 'Error al crear tienda');
+        }
+        
+        const tiendaData = await tiendaResponse.json();
+        
+        // Cerrar modal de credenciales
+        cerrarModalCredenciales();
+        
+        // Mostrar modal de éxito
+        mostrarModalTiendaCreada(tiendaData, username, password);
+        
+    } catch (error) {
+        console.error('❌ Error al crear tienda:', error);
+        mostrarNotificacion('❌ ' + error.message, 'error');
+        
+        const btnCrear = document.querySelector('.btn-crear-tienda');
+        btnCrear.disabled = false;
+        btnCrear.innerHTML = '<i class="fas fa-rocket"></i> Crear Tienda Online';
+    }
+}
+
+// Funciones auxiliares para los modales
+function cerrarModalCredenciales() {
+    const modal = document.getElementById('credencialesModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function cerrarModalTiendaCreada() {
+    const modal = document.getElementById('tiendaCreadaModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function abrirTienda(url) {
+    window.open(url, '_blank');
+}
+
+function abrirAdmin(url) {
+    window.open(url, '_blank');
+}
+
+function copiarCredenciales(username, password, tiendaId) {
+    const credenciales = `Usuario: ${username}\nContraseña: ${password}\nID Tienda: ${tiendaId}`;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(credenciales).then(() => {
+            mostrarNotificacion('✅ Credenciales copiadas al portapapeles', 'success');
+        }).catch(() => {
+            copiarEnlaceFallback(credenciales);
+        });
+    } else {
+        copiarEnlaceFallback(credenciales);
+    }
+}
+
+// Función para mostrar modal de tienda creada
+function mostrarModalTiendaCreada(tiendaData, username, password) {
+    const modalHTML = `
+        <div class="tienda-creada-modal" id="tiendaCreadaModal">
+            <div class="tienda-creada-content">
+                <div class="tienda-creada-header">
+                    <h2><i class="fas fa-check-circle"></i> ¡Tienda Creada!</h2>
+                    <button class="tienda-creada-close" onclick="cerrarModalTiendaCreada()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="tienda-creada-body">
+                    <div class="tienda-creada-success">
+                        <div class="success-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3>Tu tienda online está lista</h3>
+                        <p>Guarda tus credenciales de acceso</p>
+                    </div>
+                    
+                    <div class="credenciales-info">
+                        <div class="credencial-item">
+                            <i class="fas fa-user"></i>
+                            <span><strong>Usuario:</strong> ${username}</span>
+                        </div>
+                        <div class="credencial-item">
+                            <i class="fas fa-key"></i>
+                            <span><strong>Contraseña:</strong> ${password}</span>
+                        </div>
+                        <div class="credencial-item">
+                            <i class="fas fa-link"></i>
+                            <span><strong>ID Tienda:</strong> ${tiendaData.tiendaId}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tienda-creada-actions">
+                        <button class="btn-ver-tienda" onclick="abrirTienda('${tiendaData.url}')">
+                            <i class="fas fa-external-link-alt"></i>
+                            Ver Tienda
+                        </button>
+                        
+                        <button class="btn-admin" onclick="abrirAdmin('${tiendaData.adminUrl}')">
+                            <i class="fas fa-cog"></i>
+                            Panel de Administración
+                        </button>
+                        
+                        <button class="btn-copiar-credenciales" onclick="copiarCredenciales('${username}', '${password}', '${tiendaData.tiendaId}')">
+                            <i class="fas fa-copy"></i>
+                            Copiar Credenciales
+                        </button>
+                    </div>
+                    
+                    <div class="tienda-creada-links">
+                        <div class="link-item">
+                            <i class="fas fa-globe"></i>
+                            <span>Tienda: <a href="${tiendaData.url}" target="_blank">${tiendaData.url}</a></span>
+                        </div>
+                        <div class="link-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Admin: <a href="${tiendaData.adminUrl}" target="_blank">${tiendaData.adminUrl}</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modalStyles = `
+        <style>
+            .tienda-creada-modal {
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                backdrop-filter: blur(5px);
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .tienda-creada-content {
+                background: white;
+                border-radius: 12px;
+                max-width: 600px;
+                width: 90%;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                animation: slideIn 0.3s ease;
+                margin: auto;
+            }
+            
+            .tienda-creada-header {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .tienda-creada-header h2 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .tienda-creada-close {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .tienda-creada-close:hover {
+                background: rgba(255,255,255,0.3);
+                transform: scale(1.1);
+            }
+            
+            .tienda-creada-body {
+                padding: 2rem;
+            }
+            
+            .tienda-creada-success {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .success-icon {
+                font-size: 4rem;
+                color: #10b981;
+                margin-bottom: 1rem;
+                animation: bounce 0.6s ease;
+            }
+            
+            .tienda-creada-success h3 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #333;
+                margin-bottom: 0.5rem;
+            }
+            
+            .tienda-creada-success p {
+                color: #666;
+                font-size: 1rem;
+            }
+            
+            .credenciales-info {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                border: 1px solid #e9ecef;
+            }
+            
+            .credencial-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem;
+                color: #333;
+                font-size: 0.9rem;
+            }
+            
+            .credencial-item:last-child {
+                margin-bottom: 0;
+            }
+            
+            .credencial-item i {
+                color: #667eea;
+                width: 16px;
+            }
+            
+            .tienda-creada-actions {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .btn-ver-tienda, .btn-admin, .btn-copiar-credenciales {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                text-decoration: none;
+                color: white;
+            }
+            
+            .btn-ver-tienda {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            
+            .btn-admin {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            }
+            
+            .btn-copiar-credenciales {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            }
+            
+            .btn-ver-tienda:hover, .btn-admin:hover, .btn-copiar-credenciales:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            
+            .tienda-creada-links {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 1.5rem;
+                border: 1px solid #e9ecef;
+            }
+            
+            .link-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem;
+                color: #333;
+                font-size: 0.9rem;
+            }
+            
+            .link-item:last-child {
+                margin-bottom: 0;
+            }
+            
+            .link-item i {
+                color: #667eea;
+                width: 16px;
+            }
+            
+            .link-item a {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+            }
+            
+            .link-item a:hover {
+                text-decoration: underline;
+            }
+            
+            @media (max-width: 768px) {
+                .tienda-creada-content {
+                    width: 95%;
+                    margin: 1rem;
+                }
+                
+                .tienda-creada-body {
+                    padding: 1.5rem;
+                }
+                
+                .tienda-creada-actions {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                
+                .btn-ver-tienda, .btn-admin, .btn-copiar-credenciales {
+                    width: 100%;
+                    max-width: 250px;
+                    justify-content: center;
+                }
+            }
+        </style>
+    `;
+    
+    // Agregar modal y estilos al DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.head.insertAdjacentHTML('beforeend', modalStyles);
+    
+    mostrarNotificacion('✅ Tienda creada exitosamente', 'success');
+}
