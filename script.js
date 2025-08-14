@@ -396,13 +396,8 @@ function publicarTienda() {
     console.log('🚀 Publicando tienda...');
     
     try {
-        // Obtener productos actuales
-        const productosActuales = productos.filter(p => p.seleccionado);
-        
-        if (productosActuales.length === 0) {
-            mostrarNotificacion('⚠️ No hay productos seleccionados para publicar', 'warning');
-            return;
-        }
+        // Obtener productos actuales (todos los productos, no solo los seleccionados)
+        const productosActuales = productos;
         
         // Obtener configuración actual
         const configuracionActual = {
@@ -415,11 +410,11 @@ function publicarTienda() {
                 precioColor: '#00aa00'
             },
             whatsapp: {
-                numero: '+34612345678' // Puedes hacer esto configurable
+                numero: '+34612345678'
             }
         };
         
-        // Mostrar modal de credenciales
+        // Mostrar modal de credenciales directamente
         mostrarModalCredenciales(configuracionActual.header.texto, productosActuales, configuracionActual);
         
     } catch (error) {
