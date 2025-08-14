@@ -419,12 +419,8 @@ function publicarTienda() {
             }
         };
         
-        // Usar la nueva función de publicación con enlace
-        publicarTiendaConEnlace(
-            configuracionActual.header.texto,
-            productosActuales,
-            configuracionActual
-        );
+        // Mostrar modal de credenciales
+        mostrarModalCredenciales(configuracionActual.header.texto, productosActuales, configuracionActual);
         
     } catch (error) {
         console.error('❌ Error al publicar tienda:', error);
@@ -432,69 +428,256 @@ function publicarTienda() {
     }
 }
 
-// Configurar navegación por pestañas
-function setupTabNavigation() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanes = document.querySelectorAll('.tab-pane');
+// Función para mostrar modal de credenciales
+function mostrarModalCredenciales(nombreCatalogo, productos, configuracion) {
+    console.log('🔧 Mostrando modal de credenciales...');
     
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetTab = button.getAttribute('data-tab');
-            
-            // Remover clase active de todos los botones y paneles
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabPanes.forEach(pane => pane.classList.remove('active'));
-            
-            // Agregar clase active al botón clickeado y su panel correspondiente
-            button.classList.add('active');
-            document.getElementById(targetTab).classList.add('active');
-            
-            // Actualizar vista previa si es necesario
-            if (targetTab === 'vista-previa') {
-                actualizarVistaPreviaCompleta();
-            }
-        });
-    });
-}
-
-// Configurar drag and drop
-function setupDragAndDrop() {
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    if (!fileUploadArea) return;
-
-    function preventDefaults(e) {
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.id = 'credencialesModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.zIndex = '10000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    const tiendaId = nombreCatalogo.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    
+    // Crear el contenido del modal
+    const content = document.createElement('div');
+    content.style.background = 'white';
+    content.style.borderRadius = '12px';
+    content.style.maxWidth = '500px';
+    content.style.width = '90%';
+    content.style.padding = '2rem';
+    content.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)';
+    
+    // Crear el header
+    const header = document.createElement('div');
+    header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    header.style.color = 'white';
+    header.style.padding = '1.5rem';
+    header.style.borderRadius = '12px 12px 0 0';
+    header.style.margin = '-2rem -2rem 2rem -2rem';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    
+    const title = document.createElement('h2');
+    title.style.margin = '0';
+    title.style.fontSize = '1.5rem';
+    title.innerHTML = '<i class="fas fa-user-shield"></i> Configurar Credenciales';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.style.background = 'rgba(255,255,255,0.2)';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.width = '40px';
+    closeBtn.style.height = '40px';
+    closeBtn.style.borderRadius = '50%';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.fontSize = '1.2rem';
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    closeBtn.onclick = cerrarModalCredenciales;
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    // Crear el formulario
+    const form = document.createElement('form');
+    form.id = 'credencialesForm';
+    form.style.display = 'flex';
+    form.style.flexDirection = 'column';
+    form.style.gap = '1.5rem';
+    
+    // Campo ID de tienda
+    const tiendaIdDiv = document.createElement('div');
+    const tiendaIdLabel = document.createElement('label');
+    tiendaIdLabel.style.display = 'block';
+    tiendaIdLabel.style.fontWeight = '600';
+    tiendaIdLabel.style.color = '#333';
+    tiendaIdLabel.style.marginBottom = '0.5rem';
+    tiendaIdLabel.textContent = 'ID de la Tienda:';
+    
+    const tiendaIdInput = document.createElement('input');
+    tiendaIdInput.type = 'text';
+    tiendaIdInput.id = 'tiendaId';
+    tiendaIdInput.value = tiendaId;
+    tiendaIdInput.required = true;
+    tiendaIdInput.style.width = '100%';
+    tiendaIdInput.style.padding = '0.75rem';
+    tiendaIdInput.style.border = '2px solid #e1e5e9';
+    tiendaIdInput.style.borderRadius = '8px';
+    tiendaIdInput.style.fontSize = '1rem';
+    tiendaIdInput.style.boxSizing = 'border-box';
+    
+    const tiendaIdSmall = document.createElement('small');
+    tiendaIdSmall.style.color = '#666';
+    tiendaIdSmall.style.fontSize = '0.8rem';
+    tiendaIdSmall.textContent = 'Identificador único para tu tienda';
+    
+    tiendaIdDiv.appendChild(tiendaIdLabel);
+    tiendaIdDiv.appendChild(tiendaIdInput);
+    tiendaIdDiv.appendChild(tiendaIdSmall);
+    
+    // Campo usuario
+    const usernameDiv = document.createElement('div');
+    const usernameLabel = document.createElement('label');
+    usernameLabel.style.display = 'block';
+    usernameLabel.style.fontWeight = '600';
+    usernameLabel.style.color = '#333';
+    usernameLabel.style.marginBottom = '0.5rem';
+    usernameLabel.textContent = 'Usuario Administrador:';
+    
+    const usernameInput = document.createElement('input');
+    usernameInput.type = 'text';
+    usernameInput.id = 'adminUsername';
+    usernameInput.placeholder = 'admin';
+    usernameInput.required = true;
+    usernameInput.style.width = '100%';
+    usernameInput.style.padding = '0.75rem';
+    usernameInput.style.border = '2px solid #e1e5e9';
+    usernameInput.style.borderRadius = '8px';
+    usernameInput.style.fontSize = '1rem';
+    usernameInput.style.boxSizing = 'border-box';
+    
+    const usernameSmall = document.createElement('small');
+    usernameSmall.style.color = '#666';
+    usernameSmall.style.fontSize = '0.8rem';
+    usernameSmall.textContent = 'Usuario para acceder al panel de administración';
+    
+    usernameDiv.appendChild(usernameLabel);
+    usernameDiv.appendChild(usernameInput);
+    usernameDiv.appendChild(usernameSmall);
+    
+    // Campo contraseña
+    const passwordDiv = document.createElement('div');
+    const passwordLabel = document.createElement('label');
+    passwordLabel.style.display = 'block';
+    passwordLabel.style.fontWeight = '600';
+    passwordLabel.style.color = '#333';
+    passwordLabel.style.marginBottom = '0.5rem';
+    passwordLabel.textContent = 'Contraseña:';
+    
+    const passwordInput = document.createElement('input');
+    passwordInput.type = 'password';
+    passwordInput.id = 'adminPassword';
+    passwordInput.placeholder = '••••••••';
+    passwordInput.required = true;
+    passwordInput.style.width = '100%';
+    passwordInput.style.padding = '0.75rem';
+    passwordInput.style.border = '2px solid #e1e5e9';
+    passwordInput.style.borderRadius = '8px';
+    passwordInput.style.fontSize = '1rem';
+    passwordInput.style.boxSizing = 'border-box';
+    
+    const passwordSmall = document.createElement('small');
+    passwordSmall.style.color = '#666';
+    passwordSmall.style.fontSize = '0.8rem';
+    passwordSmall.textContent = 'Mínimo 6 caracteres';
+    
+    passwordDiv.appendChild(passwordLabel);
+    passwordDiv.appendChild(passwordInput);
+    passwordDiv.appendChild(passwordSmall);
+    
+    // Campo confirmar contraseña
+    const confirmDiv = document.createElement('div');
+    const confirmLabel = document.createElement('label');
+    confirmLabel.style.display = 'block';
+    confirmLabel.style.fontWeight = '600';
+    confirmLabel.style.color = '#333';
+    confirmLabel.style.marginBottom = '0.5rem';
+    confirmLabel.textContent = 'Confirmar Contraseña:';
+    
+    const confirmInput = document.createElement('input');
+    confirmInput.type = 'password';
+    confirmInput.id = 'confirmPassword';
+    confirmInput.placeholder = '••••••••';
+    confirmInput.required = true;
+    confirmInput.style.width = '100%';
+    confirmInput.style.padding = '0.75rem';
+    confirmInput.style.border = '2px solid #e1e5e9';
+    confirmInput.style.borderRadius = '8px';
+    confirmInput.style.fontSize = '1rem';
+    confirmInput.style.boxSizing = 'border-box';
+    
+    const confirmSmall = document.createElement('small');
+    confirmSmall.style.color = '#666';
+    confirmSmall.style.fontSize = '0.8rem';
+    confirmSmall.textContent = 'Repite la contraseña';
+    
+    confirmDiv.appendChild(confirmLabel);
+    confirmDiv.appendChild(confirmInput);
+    confirmDiv.appendChild(confirmSmall);
+    
+    // Botón submit
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.style.padding = '1rem 2rem';
+    submitBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    submitBtn.style.color = 'white';
+    submitBtn.style.border = 'none';
+    submitBtn.style.borderRadius = '8px';
+    submitBtn.style.fontSize = '1rem';
+    submitBtn.style.fontWeight = '600';
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.style.marginTop = '1rem';
+    submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Crear Tienda Online';
+    
+    // Agregar campos al formulario
+    form.appendChild(tiendaIdDiv);
+    form.appendChild(usernameDiv);
+    form.appendChild(passwordDiv);
+    form.appendChild(confirmDiv);
+    form.appendChild(submitBtn);
+    
+    // Configurar evento del formulario
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        e.stopPropagation();
-    }
-
-    function highlight(e) {
-        fileUploadArea.classList.add('drag-over');
-    }
-
-    function unhighlight(e) {
-        fileUploadArea.classList.remove('drag-over');
-    }
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        document.getElementById('imagenesProducto').files = files;
-        previewImages({ target: { files: files } });
-    }
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, preventDefaults, false);
+        console.log('📝 Formulario enviado');
+        
+        const tiendaId = document.getElementById('tiendaId').value;
+        const username = document.getElementById('adminUsername').value;
+        const password = document.getElementById('adminPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        console.log('📋 Datos del formulario:', { tiendaId, username, password: '***' });
+        
+        // Validaciones
+        if (password !== confirmPassword) {
+            mostrarNotificacion('❌ Las contraseñas no coinciden', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            mostrarNotificacion('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+        
+        if (username.length < 3) {
+            mostrarNotificacion('❌ El usuario debe tener al menos 3 caracteres', 'error');
+            return;
+        }
+        
+        // Crear tienda
+        await crearTiendaConCredenciales(tiendaId, username, password, nombreCatalogo, productos, configuracion);
     });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, unhighlight, false);
-    });
-
-    fileUploadArea.addEventListener('drop', handleDrop, false);
+    
+    // Agregar elementos al contenido
+    content.appendChild(header);
+    content.appendChild(form);
+    
+    // Agregar contenido al modal
+    modal.appendChild(content);
+    
+    // Agregar modal al DOM
+    document.body.appendChild(modal);
+    console.log('✅ Modal agregado al DOM');
 }
 
 // Cargar productos guardados
@@ -7147,7 +7330,7 @@ function publicarTiendaConEnlace(nombreCatalogo, productos, configuracion = {}) 
     try {
         console.log('🚀 Publicando tienda online...');
         
-        // Mostrar modal de configuración de credenciales
+        // Mostrar modal de credenciales
         mostrarModalCredenciales(nombreCatalogo, productos, configuracion);
         
     } catch (error) {
@@ -7158,239 +7341,223 @@ function publicarTiendaConEnlace(nombreCatalogo, productos, configuracion = {}) 
 
 // Función para mostrar modal de credenciales
 function mostrarModalCredenciales(nombreCatalogo, productos, configuracion) {
-    const modalHTML = `
-        <div class="credenciales-modal" id="credencialesModal">
-            <div class="credenciales-content">
-                <div class="credenciales-header">
-                    <h2><i class="fas fa-user-shield"></i> Configurar Credenciales</h2>
-                    <button class="credenciales-close" onclick="cerrarModalCredenciales()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="credenciales-body">
-                    <div class="credenciales-info">
-                        <div class="info-icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <h3>Configura tu tienda online</h3>
-                        <p>Crea un usuario y contraseña para administrar tu tienda</p>
-                    </div>
-                    
-                    <form class="credenciales-form" id="credencialesForm">
-                        <div class="form-group">
-                            <label for="tiendaId">ID de la Tienda:</label>
-                            <input type="text" id="tiendaId" name="tiendaId" value="${nombreCatalogo.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}" required>
-                            <small>Identificador único para tu tienda (solo letras, números y guiones)</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="adminUsername">Usuario Administrador:</label>
-                            <input type="text" id="adminUsername" name="adminUsername" placeholder="admin" required>
-                            <small>Usuario para acceder al panel de administración</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="adminPassword">Contraseña:</label>
-                            <input type="password" id="adminPassword" name="adminPassword" placeholder="••••••••" required>
-                            <small>Mínimo 6 caracteres</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="confirmPassword">Confirmar Contraseña:</label>
-                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
-                            <small>Repite la contraseña</small>
-                        </div>
-                        
-                        <button type="submit" class="btn-crear-tienda">
-                            <i class="fas fa-rocket"></i>
-                            Crear Tienda Online
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    `;
+    console.log('🔧 Mostrando modal de credenciales...');
     
-    const modalStyles = `
-        <style>
-            .credenciales-modal {
-                display: flex;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                backdrop-filter: blur(5px);
-                z-index: 10000;
-                animation: fadeIn 0.3s ease;
-            }
-            
-            .credenciales-content {
-                background: white;
-                border-radius: 12px;
-                max-width: 600px;
-                width: 90%;
-                overflow: hidden;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                animation: slideIn 0.3s ease;
-                margin: auto;
-            }
-            
-            .credenciales-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 1.5rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .credenciales-header h2 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            
-            .credenciales-close {
-                background: rgba(255,255,255,0.2);
-                border: none;
-                color: white;
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .credenciales-close:hover {
-                background: rgba(255,255,255,0.3);
-                transform: scale(1.1);
-            }
-            
-            .credenciales-body {
-                padding: 2rem;
-            }
-            
-            .credenciales-info {
-                text-align: center;
-                margin-bottom: 2rem;
-            }
-            
-            .info-icon {
-                font-size: 3rem;
-                color: #667eea;
-                margin-bottom: 1rem;
-            }
-            
-            .credenciales-info h3 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #333;
-                margin-bottom: 0.5rem;
-            }
-            
-            .credenciales-info p {
-                color: #666;
-                font-size: 1rem;
-            }
-            
-            .credenciales-form {
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-            
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .form-group label {
-                font-weight: 600;
-                color: #333;
-                font-size: 0.9rem;
-            }
-            
-            .form-group input {
-                padding: 0.75rem 1rem;
-                border: 2px solid #e1e5e9;
-                border-radius: 8px;
-                font-size: 1rem;
-                transition: all 0.3s ease;
-            }
-            
-            .form-group input:focus {
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-            
-            .form-group small {
-                color: #666;
-                font-size: 0.8rem;
-            }
-            
-            .btn-crear-tienda {
-                padding: 1rem 2rem;
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 1rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-                margin-top: 1rem;
-            }
-            
-            .btn-crear-tienda:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
-            }
-            
-            .btn-crear-tienda:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
-            
-            @media (max-width: 768px) {
-                .credenciales-content {
-                    width: 95%;
-                    margin: 1rem;
-                }
-                
-                .credenciales-body {
-                    padding: 1.5rem;
-                }
-            }
-        </style>
-    `;
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.id = 'credencialesModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.zIndex = '10000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
     
-    // Agregar modal y estilos al DOM
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.head.insertAdjacentHTML('beforeend', modalStyles);
+    const tiendaId = nombreCatalogo.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
     
-    // Configurar formulario
-    document.getElementById('credencialesForm').addEventListener('submit', async (e) => {
+    // Crear el contenido del modal
+    const content = document.createElement('div');
+    content.style.background = 'white';
+    content.style.borderRadius = '12px';
+    content.style.maxWidth = '500px';
+    content.style.width = '90%';
+    content.style.padding = '2rem';
+    content.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)';
+    
+    // Crear el header
+    const header = document.createElement('div');
+    header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    header.style.color = 'white';
+    header.style.padding = '1.5rem';
+    header.style.borderRadius = '12px 12px 0 0';
+    header.style.margin = '-2rem -2rem 2rem -2rem';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    
+    const title = document.createElement('h2');
+    title.style.margin = '0';
+    title.style.fontSize = '1.5rem';
+    title.innerHTML = '<i class="fas fa-user-shield"></i> Configurar Credenciales';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.style.background = 'rgba(255,255,255,0.2)';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.width = '40px';
+    closeBtn.style.height = '40px';
+    closeBtn.style.borderRadius = '50%';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.fontSize = '1.2rem';
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    closeBtn.onclick = cerrarModalCredenciales;
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    // Crear el formulario
+    const form = document.createElement('form');
+    form.id = 'credencialesForm';
+    form.style.display = 'flex';
+    form.style.flexDirection = 'column';
+    form.style.gap = '1.5rem';
+    
+    // Campo ID de tienda
+    const tiendaIdDiv = document.createElement('div');
+    const tiendaIdLabel = document.createElement('label');
+    tiendaIdLabel.style.display = 'block';
+    tiendaIdLabel.style.fontWeight = '600';
+    tiendaIdLabel.style.color = '#333';
+    tiendaIdLabel.style.marginBottom = '0.5rem';
+    tiendaIdLabel.textContent = 'ID de la Tienda:';
+    
+    const tiendaIdInput = document.createElement('input');
+    tiendaIdInput.type = 'text';
+    tiendaIdInput.id = 'tiendaId';
+    tiendaIdInput.value = tiendaId;
+    tiendaIdInput.required = true;
+    tiendaIdInput.style.width = '100%';
+    tiendaIdInput.style.padding = '0.75rem';
+    tiendaIdInput.style.border = '2px solid #e1e5e9';
+    tiendaIdInput.style.borderRadius = '8px';
+    tiendaIdInput.style.fontSize = '1rem';
+    tiendaIdInput.style.boxSizing = 'border-box';
+    
+    const tiendaIdSmall = document.createElement('small');
+    tiendaIdSmall.style.color = '#666';
+    tiendaIdSmall.style.fontSize = '0.8rem';
+    tiendaIdSmall.textContent = 'Identificador único para tu tienda';
+    
+    tiendaIdDiv.appendChild(tiendaIdLabel);
+    tiendaIdDiv.appendChild(tiendaIdInput);
+    tiendaIdDiv.appendChild(tiendaIdSmall);
+    
+    // Campo usuario
+    const usernameDiv = document.createElement('div');
+    const usernameLabel = document.createElement('label');
+    usernameLabel.style.display = 'block';
+    usernameLabel.style.fontWeight = '600';
+    usernameLabel.style.color = '#333';
+    usernameLabel.style.marginBottom = '0.5rem';
+    usernameLabel.textContent = 'Usuario Administrador:';
+    
+    const usernameInput = document.createElement('input');
+    usernameInput.type = 'text';
+    usernameInput.id = 'adminUsername';
+    usernameInput.placeholder = 'admin';
+    usernameInput.required = true;
+    usernameInput.style.width = '100%';
+    usernameInput.style.padding = '0.75rem';
+    usernameInput.style.border = '2px solid #e1e5e9';
+    usernameInput.style.borderRadius = '8px';
+    usernameInput.style.fontSize = '1rem';
+    usernameInput.style.boxSizing = 'border-box';
+    
+    const usernameSmall = document.createElement('small');
+    usernameSmall.style.color = '#666';
+    usernameSmall.style.fontSize = '0.8rem';
+    usernameSmall.textContent = 'Usuario para acceder al panel de administración';
+    
+    usernameDiv.appendChild(usernameLabel);
+    usernameDiv.appendChild(usernameInput);
+    usernameDiv.appendChild(usernameSmall);
+    
+    // Campo contraseña
+    const passwordDiv = document.createElement('div');
+    const passwordLabel = document.createElement('label');
+    passwordLabel.style.display = 'block';
+    passwordLabel.style.fontWeight = '600';
+    passwordLabel.style.color = '#333';
+    passwordLabel.style.marginBottom = '0.5rem';
+    passwordLabel.textContent = 'Contraseña:';
+    
+    const passwordInput = document.createElement('input');
+    passwordInput.type = 'password';
+    passwordInput.id = 'adminPassword';
+    passwordInput.placeholder = '••••••••';
+    passwordInput.required = true;
+    passwordInput.style.width = '100%';
+    passwordInput.style.padding = '0.75rem';
+    passwordInput.style.border = '2px solid #e1e5e9';
+    passwordInput.style.borderRadius = '8px';
+    passwordInput.style.fontSize = '1rem';
+    passwordInput.style.boxSizing = 'border-box';
+    
+    const passwordSmall = document.createElement('small');
+    passwordSmall.style.color = '#666';
+    passwordSmall.style.fontSize = '0.8rem';
+    passwordSmall.textContent = 'Mínimo 6 caracteres';
+    
+    passwordDiv.appendChild(passwordLabel);
+    passwordDiv.appendChild(passwordInput);
+    passwordDiv.appendChild(passwordSmall);
+    
+    // Campo confirmar contraseña
+    const confirmDiv = document.createElement('div');
+    const confirmLabel = document.createElement('label');
+    confirmLabel.style.display = 'block';
+    confirmLabel.style.fontWeight = '600';
+    confirmLabel.style.color = '#333';
+    confirmLabel.style.marginBottom = '0.5rem';
+    confirmLabel.textContent = 'Confirmar Contraseña:';
+    
+    const confirmInput = document.createElement('input');
+    confirmInput.type = 'password';
+    confirmInput.id = 'confirmPassword';
+    confirmInput.placeholder = '••••••••';
+    confirmInput.required = true;
+    confirmInput.style.width = '100%';
+    confirmInput.style.padding = '0.75rem';
+    confirmInput.style.border = '2px solid #e1e5e9';
+    confirmInput.style.borderRadius = '8px';
+    confirmInput.style.fontSize = '1rem';
+    confirmInput.style.boxSizing = 'border-box';
+    
+    const confirmSmall = document.createElement('small');
+    confirmSmall.style.color = '#666';
+    confirmSmall.style.fontSize = '0.8rem';
+    confirmSmall.textContent = 'Repite la contraseña';
+    
+    confirmDiv.appendChild(confirmLabel);
+    confirmDiv.appendChild(confirmInput);
+    confirmDiv.appendChild(confirmSmall);
+    
+    // Botón submit
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.style.padding = '1rem 2rem';
+    submitBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    submitBtn.style.color = 'white';
+    submitBtn.style.border = 'none';
+    submitBtn.style.borderRadius = '8px';
+    submitBtn.style.fontSize = '1rem';
+    submitBtn.style.fontWeight = '600';
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.style.marginTop = '1rem';
+    submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Crear Tienda Online';
+    
+    // Agregar campos al formulario
+    form.appendChild(tiendaIdDiv);
+    form.appendChild(usernameDiv);
+    form.appendChild(passwordDiv);
+    form.appendChild(confirmDiv);
+    form.appendChild(submitBtn);
+    
+    // Configurar evento del formulario
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('📝 Formulario enviado');
         
         const tiendaId = document.getElementById('tiendaId').value;
         const username = document.getElementById('adminUsername').value;
         const password = document.getElementById('adminPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        console.log('📋 Datos del formulario:', { tiendaId, username, password: '***' });
         
         // Validaciones
         if (password !== confirmPassword) {
@@ -7411,6 +7578,17 @@ function mostrarModalCredenciales(nombreCatalogo, productos, configuracion) {
         // Crear tienda
         await crearTiendaConCredenciales(tiendaId, username, password, nombreCatalogo, productos, configuracion);
     });
+    
+    // Agregar elementos al contenido
+    content.appendChild(header);
+    content.appendChild(form);
+    
+    // Agregar contenido al modal
+    modal.appendChild(content);
+    
+    // Agregar modal al DOM
+    document.body.appendChild(modal);
+    console.log('✅ Modal agregado al DOM');
 }
 
 // Función para crear tienda con credenciales
