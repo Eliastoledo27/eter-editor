@@ -1,0 +1,41 @@
+# Archivos del editor (no necesarios para la tienda)
+script.js
+script-clean.js
+styles.css
+index.html
+
+# Archivos de configuración del editor
+.git/
+.gitignore
+README.md
+VERCEL_SETUP.md
+package.json
+package-lock.json
+
+# Archivos temporales
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos de desarrollo
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de backup
+*.bak
+*.backup 

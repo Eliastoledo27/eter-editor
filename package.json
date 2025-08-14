@@ -1,0 +1,30 @@
+{
+  "name": "eter-generator-cat",
+  "version": "2.0.0",
+  "description": "Editor Profesional Éter Studio - Generador de Tiendas Online",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000",
+    "dev": "npx http-server . -p 3000",
+    "build": "echo 'Build completed'",
+    "deploy": "vercel --prod",
+    "vercel-build": "echo 'Vercel build completed'"
+  },
+  "keywords": [
+    "tienda",
+    "online",
+    "generador",
+    "editor",
+    "html",
+    "css",
+    "javascript"
+  ],
+  "author": "Éter Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

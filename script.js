@@ -7043,420 +7043,43 @@ body {
         left: 10px;
         min-width: auto;
     }
-}`;
-
-    // Crear la carpeta tienda si no existe
-    const fs = require('fs');
-    const path = require('path');
-    
-    const tiendaDir = path.join(__dirname, 'tienda');
-    if (!fs.existsSync(tiendaDir)) {
-        fs.mkdirSync(tiendaDir, { recursive: true });
-    }
-    
-    // Generar nombre de archivo único
-    const timestamp = Date.now();
-    const fileName = `tienda_${nombreCatalogo.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}`;
-    const htmlFilePath = path.join(tiendaDir, `${fileName}.html`);
-    const cssFilePath = path.join(tiendaDir, 'estilos.css');
-    
-    // Guardar archivos
-    fs.writeFileSync(htmlFilePath, htmlContent, 'utf8');
-    fs.writeFileSync(cssFilePath, cssContent, 'utf8');
-    
-    console.log(`✅ Tienda generada exitosamente:`);
-    console.log(`📁 HTML: ${htmlFilePath}`);
-    console.log(`🎨 CSS: ${cssFilePath}`);
-    
-    // Generar enlace HTML
-    const enlaceHTML = `<a href="tienda/${fileName}.html" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-    <i class="fas fa-external-link-alt"></i> Ver Tienda
-</a>`;
-    
-    return {
-        htmlContent,
-        cssContent,
-        htmlFilePath,
-        cssFilePath,
-        enlaceHTML,
-        fileName: `${fileName}.html`
-    };
 }
 
-// Función para previsualizar la tienda generada
-function previsualizarTienda(resultado) {
+// Función para abrir URL de Vercel
+function abrirVercelUrl(url) {
     try {
-        // Crear una nueva ventana/pestaña con la tienda
-        const nuevaVentana = window.open('', '_blank');
-        
-        if (nuevaVentana) {
-            nuevaVentana.document.write(resultado.htmlContent);
-            nuevaVentana.document.close();
-            
-            // Mostrar notificación de éxito
-            mostrarNotificacion('✅ Tienda abierta en nueva pestaña', 'success');
-            
-            console.log('🏪 Tienda previsualizada en:', nuevaVentana.location.href);
-        } else {
-            // Fallback: mostrar en iframe o alertar al usuario
-            mostrarNotificacion('⚠️ No se pudo abrir la ventana. Bloquea los popups y vuelve a intentar.', 'warning');
-        }
+        window.open(url, '_blank');
+        mostrarNotificacion('✅ Abriendo tienda en Vercel', 'success');
     } catch (error) {
-        console.error('❌ Error al previsualizar tienda:', error);
-        mostrarNotificacion('❌ Error al abrir la tienda', 'error');
+        console.error('❌ Error al abrir URL de Vercel:', error);
+        mostrarNotificacion('❌ Error al abrir la URL de Vercel', 'error');
     }
 }
 
-// Función para generar y previsualizar tienda en un paso
-function generarYPrevisualizarTienda(nombreCatalogo, productos, configuracion = {}) {
+// Función para copiar enlace de Vercel
+function copiarEnlaceVercel(url) {
     try {
-        console.log('🚀 Generando y previsualizando tienda...');
-        
-        // Generar la tienda
-        const resultado = generarTiendaOnlineInteractiva(nombreCatalogo, productos, configuracion);
-        
-        // Previsualizar automáticamente
-        previsualizarTienda(resultado);
-        
-        // Mostrar enlace en la consola
-        console.log('🔗 Enlace de la tienda:', resultado.enlaceHTML);
-        
-        return resultado;
-    } catch (error) {
-        console.error('❌ Error en generarYPrevisualizarTienda:', error);
-        mostrarNotificacion('❌ Error al generar la tienda', 'error');
-        throw error;
-    }
-}
-
-// Función para publicar tienda y mostrar información del directorio
-function publicarTiendaConEnlace(nombreCatalogo, productos, configuracion = {}) {
-    try {
-        console.log('🚀 Publicando tienda online...');
-        
-        // Generar la tienda
-        const resultado = generarTiendaOnlineInteractiva(nombreCatalogo, productos, configuracion);
-        
-        // Obtener información del directorio
-        const path = require('path');
-        const fs = require('fs');
-        
-        const tiendaDir = path.join(__dirname, 'tienda');
-        const directorioAbsoluto = path.resolve(tiendaDir);
-        const archivoHTML = path.join(tiendaDir, resultado.fileName);
-        const archivoCSS = path.join(tiendaDir, 'estilos.css');
-        
-        // Verificar que los archivos existen
-        const htmlExiste = fs.existsSync(archivoHTML);
-        const cssExiste = fs.existsSync(archivoCSS);
-        
-        // Crear modal simplificado con botones principales
-        const modalHTML = `
-            <div class="publicacion-modal" id="publicacionModal">
-                <div class="publicacion-content">
-                    <div class="publicacion-header">
-                        <h2><i class="fas fa-check-circle"></i> ¡Tienda Publicada!</h2>
-                        <button class="publicacion-close" onclick="cerrarModalPublicacion()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="publicacion-body">
-                        <div class="publicacion-success">
-                            <div class="success-icon">
-                                <i class="fas fa-store"></i>
-                            </div>
-                            <h3>Tienda creada exitosamente</h3>
-                            <p>Tu tienda online está lista para usar</p>
-                        </div>
-                        
-                        <div class="publicacion-actions-simple">
-                            <button class="btn-copiar-enlace" onclick="copiarEnlaceTienda('${archivoHTML}')">
-                                <i class="fas fa-copy"></i>
-                                Copiar Enlace
-                            </button>
-                            
-                            <button class="btn-ver-tienda" onclick="abrirTiendaPublicada('${archivoHTML}')">
-                                <i class="fas fa-external-link-alt"></i>
-                                Abrir Tienda
-                            </button>
-                        </div>
-                        
-                        <div class="publicacion-details">
-                            <div class="detail-item">
-                                <i class="fas fa-file-code"></i>
-                                <span>Archivo: ${resultado.fileName}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>${productos.length} productos</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-folder-open"></i>
-                                <span>Carpeta: tienda/</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Agregar estilos CSS para el modal simplificado
-        const modalStyles = `
-            <style>
-                .publicacion-modal {
-                    display: flex;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.8);
-                    backdrop-filter: blur(5px);
-                    z-index: 10000;
-                    animation: fadeIn 0.3s ease;
-                }
-                
-                .publicacion-content {
-                    background: var(--bg-white);
-                    border-radius: var(--border-radius);
-                    max-width: 500px;
-                    width: 90%;
-                    overflow: hidden;
-                    box-shadow: var(--shadow-xl);
-                    animation: slideIn 0.3s ease;
-                    margin: auto;
-                }
-                
-                .publicacion-header {
-                    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-                    color: white;
-                    padding: 1.5rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                .publicacion-header h2 {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-                
-                .publicacion-close {
-                    background: rgba(255,255,255,0.2);
-                    border: none;
-                    color: white;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    transition: var(--transition);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .publicacion-close:hover {
-                    background: rgba(255,255,255,0.3);
-                    transform: scale(1.1);
-                }
-                
-                .publicacion-body {
-                    padding: 2rem;
-                    text-align: center;
-                }
-                
-                .publicacion-success {
-                    margin-bottom: 2rem;
-                }
-                
-                .success-icon {
-                    font-size: 4rem;
-                    color: var(--success-color);
-                    margin-bottom: 1rem;
-                    animation: bounce 0.6s ease;
-                }
-                
-                @keyframes bounce {
-                    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-                    40% { transform: translateY(-10px); }
-                    60% { transform: translateY(-5px); }
-                }
-                
-                .publicacion-success h3 {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: var(--text-dark);
-                    margin-bottom: 0.5rem;
-                }
-                
-                .publicacion-success p {
-                    color: var(--text-light);
-                    font-size: 1rem;
-                }
-                
-                .publicacion-actions-simple {
-                    display: flex;
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                    justify-content: center;
-                }
-                
-                .btn-copiar-enlace, .btn-ver-tienda {
-                    padding: 1rem 2rem;
-                    border: none;
-                    border-radius: var(--border-radius);
-                    font-weight: 600;
-                    font-size: 1rem;
-                    cursor: pointer;
-                    transition: var(--transition);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    text-decoration: none;
-                    color: white;
-                    min-width: 150px;
-                }
-                
-                .btn-copiar-enlace {
-                    background: linear-gradient(135deg, var(--success-color) 0%, #00d4aa 100%);
-                }
-                
-                .btn-copiar-enlace:hover {
-                    transform: translateY(-2px);
-                    box-shadow: var(--shadow-lg);
-                }
-                
-                .btn-copiar-enlace.copied {
-                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                    animation: pulse 0.3s ease;
-                }
-                
-                .btn-ver-tienda {
-                    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-                }
-                
-                .btn-ver-tienda:hover {
-                    transform: translateY(-2px);
-                    box-shadow: var(--shadow-lg);
-                }
-                
-                .publicacion-details {
-                    background: #f8f9fa;
-                    border-radius: var(--border-radius);
-                    padding: 1.5rem;
-                    border: 1px solid #e9ecef;
-                }
-                
-                .detail-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    margin-bottom: 0.75rem;
-                    color: var(--text-light);
-                    font-size: 0.9rem;
-                }
-                
-                .detail-item:last-child {
-                    margin-bottom: 0;
-                }
-                
-                .detail-item i {
-                    color: var(--primary-color);
-                    width: 16px;
-                }
-                
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.05); }
-                    100% { transform: scale(1); }
-                }
-                
-                @media (max-width: 768px) {
-                    .publicacion-content {
-                        width: 95%;
-                        margin: 1rem;
-                    }
-                    
-                    .publicacion-actions-simple {
-                        flex-direction: column;
-                        align-items: center;
-                    }
-                    
-                    .btn-copiar-enlace, .btn-ver-tienda {
-                        width: 100%;
-                        max-width: 250px;
-                    }
-                }
-            </style>
-        `;
-        
-        // Agregar modal y estilos al DOM
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.head.insertAdjacentHTML('beforeend', modalStyles);
-        
-        // Mostrar notificación de éxito
-        mostrarNotificacion('✅ Tienda publicada exitosamente', 'success');
-        
-        console.log('🏪 Tienda publicada en:', archivoHTML);
-        console.log('📁 Directorio:', directorioAbsoluto);
-        
-        return resultado;
-        
-    } catch (error) {
-        console.error('❌ Error al publicar tienda:', error);
-        mostrarNotificacion('❌ Error al publicar la tienda', 'error');
-        throw error;
-    }
-}
-
-// Funciones auxiliares para el modal de publicación
-function cerrarModalPublicacion() {
-    const modal = document.getElementById('publicacionModal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-function abrirTiendaPublicada(rutaArchivo) {
-    try {
-        window.open(`file://${rutaArchivo}`, '_blank');
-        mostrarNotificacion('✅ Tienda abierta en nueva pestaña', 'success');
-    } catch (error) {
-        console.error('❌ Error al abrir tienda:', error);
-        mostrarNotificacion('❌ Error al abrir la tienda', 'error');
-    }
-}
-
-function copiarEnlaceTienda(rutaArchivo) {
-    try {
-        const enlace = `file://${rutaArchivo}`;
-        
         // Usar la moderna Clipboard API si está disponible
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(enlace).then(() => {
-                mostrarFeedbackCopia();
+            navigator.clipboard.writeText(url).then(() => {
+                mostrarFeedbackCopiaVercel();
             }).catch(() => {
                 // Fallback al método legacy
-                copiarEnlaceFallback(enlace);
+                copiarEnlaceFallback(url);
             });
         } else {
             // Fallback para navegadores que no soportan Clipboard API
-            copiarEnlaceFallback(enlace);
+            copiarEnlaceFallback(url);
         }
     } catch (error) {
-        console.error('❌ Error al copiar enlace:', error);
-        mostrarNotificacion('❌ Error al copiar el enlace', 'error');
+        console.error('❌ Error al copiar enlace de Vercel:', error);
+        mostrarNotificacion('❌ Error al copiar el enlace de Vercel', 'error');
     }
 }
 
-// Función para mostrar feedback visual de copia
-function mostrarFeedbackCopia() {
-    const boton = document.querySelector('.btn-copiar-enlace');
+// Función para mostrar feedback visual de copia de Vercel
+function mostrarFeedbackCopiaVercel() {
+    const boton = document.querySelector('.btn-copiar-vercel');
     if (boton) {
         const textoOriginal = boton.innerHTML;
         
@@ -7465,7 +7088,7 @@ function mostrarFeedbackCopia() {
         boton.classList.add('copied');
         
         // Mostrar notificación
-        mostrarNotificacion('✅ Enlace copiado al portapapeles', 'success');
+        mostrarNotificacion('✅ URL de Vercel copiada al portapapeles', 'success');
         
         // Restaurar el botón después de 2 segundos
         setTimeout(() => {
@@ -7473,57 +7096,48 @@ function mostrarFeedbackCopia() {
             boton.classList.remove('copied');
         }, 2000);
     } else {
-        mostrarNotificacion('✅ Enlace copiado al portapapeles', 'success');
+        mostrarNotificacion('✅ URL de Vercel copiada al portapapeles', 'success');
     }
 }
 
-// Función fallback para copiar texto al portapapeles
-function copiarEnlaceFallback(texto) {
+// Función para instalar Vercel CLI si no está disponible
+async function instalarVercelCLI() {
     try {
-        // Crear un textarea temporal
-        const textArea = document.createElement('textarea');
-        textArea.style.position = 'absolute';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '-9999px';
-        textArea.value = texto.trim();
+        console.log('📦 Instalando Vercel CLI...');
         
-        document.body.appendChild(textArea);
-        textArea.select();
+        const { exec } = require('child_process');
+        const util = require('util');
+        const execAsync = util.promisify(exec);
         
-        // Intentar copiar usando el método legacy
-        const copiado = document.execCommand('copy');
+        // Intentar instalar Vercel CLI globalmente
+        await execAsync('npm install -g vercel', {
+            timeout: 120000 // 2 minutos de timeout
+        });
         
-        document.body.removeChild(textArea);
+        console.log('✅ Vercel CLI instalado exitosamente');
+        mostrarNotificacion('✅ Vercel CLI instalado exitosamente', 'success');
+        return true;
         
-        if (copiado) {
-            mostrarNotificacion('✅ Enlace copiado al portapapeles', 'success');
-        } else {
-            mostrarNotificacion('❌ No se pudo copiar el enlace', 'error');
-        }
     } catch (error) {
-        console.error('❌ Error en fallback copy:', error);
-        mostrarNotificacion('❌ Error al copiar el enlace', 'error');
+        console.error('❌ Error al instalar Vercel CLI:', error);
+        mostrarNotificacion('❌ Error al instalar Vercel CLI', 'error');
+        return false;
     }
 }
 
-function abrirDirectorioTienda(rutaDirectorio) {
+// Función para verificar si Vercel CLI está instalado
+async function verificarVercelCLI() {
     try {
-        // En Windows, usar explorer
-        if (process.platform === 'win32') {
-            require('child_process').exec(`explorer "${rutaDirectorio}"`);
-        }
-        // En macOS, usar open
-        else if (process.platform === 'darwin') {
-            require('child_process').exec(`open "${rutaDirectorio}"`);
-        }
-        // En Linux, usar xdg-open
-        else {
-            require('child_process').exec(`xdg-open "${rutaDirectorio}"`);
-        }
+        const { exec } = require('child_process');
+        const util = require('util');
+        const execAsync = util.promisify(exec);
         
-        mostrarNotificacion('✅ Directorio abierto', 'success');
+        await execAsync('vercel --version', {
+            timeout: 10000 // 10 segundos de timeout
+        });
+        
+        return true;
     } catch (error) {
-        console.error('❌ Error al abrir directorio:', error);
-        mostrarNotificacion('❌ Error al abrir el directorio', 'error');
+        return false;
     }
 }
